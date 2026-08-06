@@ -1,21 +1,23 @@
 #!/usr/bin/env python
 # coding: utf-8
 
+#!/usr/bin/env python
+# coding: utf-8
+
 import yfinance as yf
 import pandas as pd
 
 def banknifty_golden_strategy(symbol="^NSEBANK"):
     print(f"Fetching data for {symbol}...")
     
-    # 1. Fetch data (5 days to ensure we have enough for 'Yesterday' and 'Today')
-    # Using 15m interval for the Opening Range
-    df = yf.download(symbol, period="5d", interval="15m")
+    # 1. Fetch data (multi_level_index=False se extra header wala issue fix hota hai)
+    df = yf.download(symbol, period="5d", interval="15m", multi_level_index=False)
     
     if df.empty:
         print("Error: Could not fetch data. Check your internet or symbol.")
         return
 
-    # FIX: Flatten MultiIndex columns if they exist (common in newer yfinance versions)
+    # Extra safety: Agar fir bhi multi-index columns aaye toh flatten kar do
     if isinstance(df.columns, pd.MultiIndex):
         df.columns = df.columns.get_level_values(0)
 
@@ -43,7 +45,6 @@ def banknifty_golden_strategy(symbol="^NSEBANK"):
         return
         
     opening_candle = today_data.iloc[0]
-    # .item() ensures we get a float, not a Series
     open_high = float(opening_candle['High'])
     open_low = float(opening_candle['Low'])
     opening_range = open_high - open_low
